@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14181F">
+<title>Ślady Podróży</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ślady Podróży">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<style>
+  :root{
+    --bg: #14181F;
+    --surface: #1C222C;
+    --surface-2: #232A36;
+    --border: #2C333F;
+    --text: #F2F0E8;
+    --text-muted: #8B93A1;
+    --visited: #6C9C80;
+    --visited-dim: rgba(108,156,128,0.16);
+    --planned: #E0A458;
+    --planned-dim: rgba(224,164,88,0.16);
+    --accent-line: #3C4858;
+    --danger: #C97064;
+    --radius: 16px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    overscroll-behavior: none;
+    display:flex;
+    flex-direction:column;
+    height:100dvh;
+  }
+  h1,h2,h3{font-family: "Fraunces", Georgia, "Times New Roman", serif; font-weight:600; margin:0;}
+
+  header.app-header{
+    padding: calc(14px + var(--safe-top)) 20px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink:0;
+  }
+  .title-row{display:flex; align-items:baseline; justify-content:space-between;}
+  header.app-header h1{font-size:22px; letter-spacing:0.2px;}
+  .subtitle{color:var(--text-muted); font-size:12.5px; margin-top:2px;}
+
+  .stats-row{display:flex; gap:10px; margin-top:14px;}
+  .stat-pill{
+    flex:1;
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius: 12px;
+    padding: 9px 10px;
+    text-align:center;
+  }
+  .stat-pill .num{font-family:"Fraunces", serif; font-size:19px; font-weight:600; line-height:1.1;}
+  .stat-pill .lbl{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
+  .stat-pill.visited .num{color:var(--visited);}
+  .stat-pill.planned .num{color:var(--planned);}
+
+  main{flex:1; min-height:0; position:relative; overflow:hidden;}
+  .view{position:absolute; inset:0; display:none; flex-direction:column;}
+  .view.active{display:flex;}
+
+  /* MAP VIEW */
+  #map-view .map-wrap{flex:1; overflow:hidden; touch-action: none; position:relative; background: radial-gradient(ellipse at 50% 30%, #1A2029 0%, #14181F 70%);}
+  #map-svg{width:100%; height:100%; display:block; cursor:grab;}
+  #map-svg:active{cursor:grabbing;}
+  .country{
+    stroke: #0F1319;
+    stroke-width: 0.5;
+    fill: #2A313D;
+    transition: fill 0.15s ease;
+  }
+  .country:hover{fill:#3A4351;}
+  .country.status-visited{fill: var(--visited);}
+  .country.status-visited:hover{fill:#7BAE90;}
+  .country.status-planned{fill: var(--planned);}
+  .country.status-planned:hover{fill:#E8B36E;}
+
+  .map-hint{
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    background:rgba(28,34,44,0.9); border:1px solid var(--border);
+    padding:6px 14px; border-radius:20px; font-size:12px; color:var(--text-muted);
+    pointer-events:none; backdrop-filter: blur(6px);
+  }
+
+  .zoom-controls{
+    position:absolute; right:14px; bottom:calc(14px + var(--safe-bottom));
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .zoom-btn{
+    width:40px; height:40px; border-radius:50%;
+    background: var(--surface); border:1px solid var(--border);
+    color:var(--text); font-size:19px; display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  /* BOTTOM SHEET */
+  .sheet-backdrop{
+    position:fixed; inset:0; background:rgba(10,12,16,0.55);
+    opacity:0; pointer-events:none; transition:opacity 0.2s ease; z-index:40;
+  }
+  .sheet-backdrop.show{opacity:1; pointer-events:auto;}
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:41;
+    background: var(--surface-2);
+    border-top:1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    padding: 10px 20px calc(22px + var(--safe-bottom));
+    transform: translateY(105%);
+    transition: transform 0.25s cubic-bezier(.32,.72,0,1);
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheet-handle{width:36px; height:4px; background:var(--accent-line); border-radius:2px; margin: 4px auto 14px;}
+  .sheet-country{font-family:"Fraunces", serif; font-size:21px; margin-bottom:4px;}
+  .sheet-region{color:var(--text-muted); font-size:12.5px; margin-bottom:16px;}
+  .status-buttons{display:flex; gap:10px;}
+  .status-btn{
+    flex:1; padding:13px 8px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:14px; font-weight:500;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .status-btn .ico{font-size:17px;}
+  .status-btn.active-visited{border-color:var(--visited); background:var(--visited-dim); color:var(--visited);}
+  .status-btn.active-planned{border-color:var(--planned); background:var(--planned-dim); color:var(--planned);}
+  .clear-row{margin-top:10px;}
+  .clear-btn{
+    width:100%; padding:11px; border-radius:12px; border:1px solid transparent;
+    background:transparent; color:var(--text-muted); font-size:13px;
+  }
+  .clear-btn:active{color:var(--danger);}
+
+  /* LIST VIEW */
+  #list-view{padding:0;}
+  .search-bar{
+    padding:12px 16px; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; gap:8px;
+  }
+  .search-input{
+    flex:1; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:10px 14px; color:var(--text); font-size:15px; outline:none;
+  }
+  .search-input::placeholder{color:var(--text-muted);}
+  .filter-chips{display:flex; gap:6px; padding:10px 16px 4px; overflow-x:auto; flex-shrink:0;}
+  .chip{
+    flex-shrink:0; padding:7px 14px; border-radius:20px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-muted); font-size:12.5px; white-space:nowrap;
+  }
+  .chip.active{background:var(--text); color:var(--bg); border-color:var(--text);}
+  .country-list{flex:1; overflow-y:auto; padding: 6px 16px calc(16px + var(--safe-bottom));}
+  .country-row{
+    display:flex; align-items:center; gap:12px;
+    padding:13px 4px; border-bottom:1px solid var(--border);
+  }
+  .country-row .name{flex:1; font-size:15px;}
+  .country-row .name .region{display:block; font-size:11px; color:var(--text-muted); margin-top:1px;}
+  .row-buttons{display:flex; gap:6px;}
+  .row-btn{
+    width:34px; height:34px; border-radius:50%; border:1.5px solid var(--border);
+    background:var(--surface); font-size:15px; display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+  }
+  .row-btn.on-visited{background:var(--visited); border-color:var(--visited); color:#0F1712;}
+  .row-btn.on-planned{background:var(--planned); border-color:var(--planned); color:#241705;}
+  .empty-state{text-align:center; color:var(--text-muted); padding:60px 30px; font-size:13.5px; line-height:1.6;}
+
+  /* TAB BAR */
+  nav.tabbar{
+    display:flex; border-top:1px solid var(--border); background:var(--bg);
+    padding-bottom: var(--safe-bottom); flex-shrink:0;
+  }
+  .tab-btn{
+    flex:1; padding:11px 0 9px; background:none; border:none; color:var(--text-muted);
+    display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px;
+  }
+  .tab-btn .ico{font-size:20px;}
+  .tab-btn.active{color:var(--text);}
+  .tab-btn.active .ico{color: var(--planned);}
+
+  #load-status{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--text-muted); font-size:13px; flex-direction:column; gap:10px;
+  }
+  .spinner{width:22px; height:22px; border-radius:50%; border:2.5px solid var(--border); border-top-color:var(--planned); animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="title-row">
+    <h1>Ślady Podróży</h1>
+  </div>
+  <div class="subtitle">Twoja mapa świata</div>
+  <div class="stats-row">
+    <div class="stat-pill visited">
+      <div class="num" id="stat-visited">0</div>
+      <div class="lbl">Odwiedzone</div>
+    </div>
+    <div class="stat-pill planned">
+      <div class="num" id="stat-planned">0</div>
+      <div class="lbl">Planowane</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num" id="stat-percent">0%</div>
+      <div class="lbl">Świata</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="map-view" class="view active">
+    <div class="map-wrap">
+      <svg id="map-svg" viewBox="0 0 960 500"></svg>
+      <div class="map-hint" id="map-hint">Dotknij kraj, aby go oznaczyć</div>
+      <div id="load-status"><div class="spinner"></div><div>Wczytywanie mapy…</div></div>
+      <div class="zoom-controls">
+        <div class="zoom-btn" id="zoom-in">+</div>
+        <div class="zoom-btn" id="zoom-out">–</div>
+        <div class="zoom-btn" id="zoom-reset">⟲</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="list-view" class="view">
+    <div class="search-bar">
+      <input class="search-input" id="search-input" type="text" placeholder="Szukaj kraju…" autocomplete="off">
+    </div>
+    <div class="filter-chips">
+      <div class="chip active" data-filter="all">Wszystkie</div>
+      <div class="chip" data-filter="visited">Odwiedzone</div>
+      <div class="chip" data-filter="planned">Planowane</div>
+      <div class="chip" data-filter="none">Nieoznaczone</div>
+    </div>
+    <div class="country-list" id="country-list"></div>
+  </div>
+</main>
+
+<nav class="tabbar">
+  <button class="tab-btn active" data-view="map-view">
+    <span class="ico">🗺</span>Mapa
+  </button>
+  <button class="tab-btn" data-view="list-view">
+    <span class="ico">☰</span>Lista
+  </button>
+</nav>
+
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-country" id="sheet-country">—</div>
+  <div class="sheet-region" id="sheet-region"></div>
+  <div class="status-buttons">
+    <button class="status-btn" id="btn-visited"><span class="ico">✓</span>Odwiedzone</button>
+    <button class="status-btn" id="btn-planned"><span class="ico">☆</span>Planowane</button>
+  </div>
+  <div class="clear-row">
+    <button class="clear-btn" id="btn-clear">Wyczyść oznaczenie</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson-client/3.1.0/topojson-client.min.js"></script>
+<script src="countries-pl.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
