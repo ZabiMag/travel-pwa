@@ -50,5 +50,5 @@ const COUNTRY_NAMES_PL = {
   840: "Stany Zjednoczone", 858: "Urugwaj", 860: "Uzbekistan",
   548: "Vanuatu", 336: "Watykan", 862: "Wenezuela", 704: "Wietnam",
   887: "Jemen", 894: "Zambia", 716: "Zimbabwe",
-  10: "Antarktyda", 732: "Sahara Zachodnia", 275: "Palestyna"
+  10: "Antarktyda", 275: "Palestyna",
 };
