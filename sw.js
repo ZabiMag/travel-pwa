@@ -1,13 +1,14 @@
-const CACHE_NAME = "slady-podrozy-v1";
+const CACHE_NAME = "slady-podrozy-v2";
 const APP_SHELL = [
   "./index.html",
   "./manifest.json",
   "./app.js",
   "./countries-pl.js",
+  "./country-areas.js",
   "./icon-192.png",
   "./icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/topojson-client/3.1.0/topojson-client.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js",
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
 ];
 

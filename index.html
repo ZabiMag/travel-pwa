@@ -22,10 +22,14 @@
     --text-muted: #8B93A1;
     --visited: #6C9C80;
     --visited-dim: rgba(108,156,128,0.16);
+    --lived: #7C93C9;
+    --lived-dim: rgba(124,147,201,0.16);
     --planned: #E0A458;
     --planned-dim: rgba(224,164,88,0.16);
     --accent-line: #3C4858;
     --danger: #C97064;
+    --country-fill: #545F70;
+    --country-hover: #656F80;
     --radius: 16px;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -54,18 +58,18 @@
   header.app-header h1{font-size:22px; letter-spacing:0.2px;}
   .subtitle{color:var(--text-muted); font-size:12.5px; margin-top:2px;}
 
-  .stats-row{display:flex; gap:10px; margin-top:14px;}
+  .stats-row{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
   .stat-pill{
-    flex:1;
     background: var(--surface);
     border:1px solid var(--border);
     border-radius: 12px;
-    padding: 9px 10px;
+    padding: 8px 10px;
     text-align:center;
   }
-  .stat-pill .num{font-family:"Fraunces", serif; font-size:19px; font-weight:600; line-height:1.1;}
+  .stat-pill .num{font-family:"Fraunces", serif; font-size:18px; font-weight:600; line-height:1.1;}
   .stat-pill .lbl{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
   .stat-pill.visited .num{color:var(--visited);}
+  .stat-pill.lived .num{color:var(--lived);}
   .stat-pill.planned .num{color:var(--planned);}
 
   main{flex:1; min-height:0; position:relative; overflow:hidden;}
@@ -77,14 +81,16 @@
   #map-svg{width:100%; height:100%; display:block; cursor:grab;}
   #map-svg:active{cursor:grabbing;}
   .country{
-    stroke: #0F1319;
+    stroke: #171D26;
     stroke-width: 0.5;
-    fill: #2A313D;
+    fill: var(--country-fill);
     transition: fill 0.15s ease;
   }
-  .country:hover{fill:#3A4351;}
+  .country:hover{fill: var(--country-hover);}
   .country.status-visited{fill: var(--visited);}
   .country.status-visited:hover{fill:#7BAE90;}
+  .country.status-lived{fill: var(--lived);}
+  .country.status-lived:hover{fill:#8FA4D6;}
   .country.status-planned{fill: var(--planned);}
   .country.status-planned:hover{fill:#E8B36E;}
 
@@ -126,14 +132,15 @@
   .sheet-handle{width:36px; height:4px; background:var(--accent-line); border-radius:2px; margin: 4px auto 14px;}
   .sheet-country{font-family:"Fraunces", serif; font-size:21px; margin-bottom:4px;}
   .sheet-region{color:var(--text-muted); font-size:12.5px; margin-bottom:16px;}
-  .status-buttons{display:flex; gap:10px;}
+  .status-buttons{display:flex; gap:8px;}
   .status-btn{
-    flex:1; padding:13px 8px; border-radius:12px; border:1.5px solid var(--border);
-    background:var(--surface); color:var(--text); font-size:14px; font-weight:500;
+    flex:1; padding:13px 4px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:12.5px; font-weight:500;
     display:flex; flex-direction:column; align-items:center; gap:4px;
   }
   .status-btn .ico{font-size:17px;}
   .status-btn.active-visited{border-color:var(--visited); background:var(--visited-dim); color:var(--visited);}
+  .status-btn.active-lived{border-color:var(--lived); background:var(--lived-dim); color:var(--lived);}
   .status-btn.active-planned{border-color:var(--planned); background:var(--planned-dim); color:var(--planned);}
   .clear-row{margin-top:10px;}
   .clear-btn{
@@ -171,20 +178,22 @@
     background:var(--surface); font-size:15px; display:flex; align-items:center; justify-content:center; color:var(--text-muted);
   }
   .row-btn.on-visited{background:var(--visited); border-color:var(--visited); color:#0F1712;}
+  .row-btn.on-lived{background:var(--lived); border-color:var(--lived); color:#101627;}
   .row-btn.on-planned{background:var(--planned); border-color:var(--planned); color:#241705;}
   .empty-state{text-align:center; color:var(--text-muted); padding:60px 30px; font-size:13.5px; line-height:1.6;}
 
   /* TAB BAR */
   nav.tabbar{
-    display:flex; border-top:1px solid var(--border); background:var(--bg);
-    padding-bottom: var(--safe-bottom); flex-shrink:0;
+    display:flex; gap:8px; border-top:1px solid var(--border); background:var(--bg);
+    padding: 8px 10px calc(8px + var(--safe-bottom)); flex-shrink:0;
   }
   .tab-btn{
-    flex:1; padding:11px 0 9px; background:none; border:none; color:var(--text-muted);
+    flex:1; padding:9px 0 7px; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; color:var(--text-muted);
     display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px;
   }
-  .tab-btn .ico{font-size:20px;}
-  .tab-btn.active{color:var(--text);}
+  .tab-btn .ico{font-size:19px;}
+  .tab-btn.active{color:var(--text); border-color:var(--planned); background:var(--planned-dim);}
   .tab-btn.active .ico{color: var(--planned);}
 
   #load-status{
@@ -193,6 +202,115 @@
   }
   .spinner{width:22px; height:22px; border-radius:50%; border:2.5px solid var(--border); border-top-color:var(--planned); animation:spin 0.8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* TRIPS VIEW */
+  #trips-view{padding:0;}
+  .trips-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 16px 10px; flex-shrink:0;
+  }
+  .trips-header h2{font-size:19px;}
+  .add-trip-btn{
+    background: var(--planned); color:#241705; border:none; border-radius:12px;
+    padding:9px 14px; font-size:13.5px; font-weight:600;
+  }
+  .trips-list{flex:1; overflow-y:auto; padding: 4px 16px calc(16px + var(--safe-bottom));}
+  .trip-card{
+    display:flex; gap:12px; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:12px; margin-bottom:10px; text-align:left;
+    width:100%; color:var(--text);
+  }
+  .trip-card-photo{
+    width:56px; height:56px; border-radius:10px; flex-shrink:0; background:var(--surface-2);
+    background-size:cover; background-position:center;
+    display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--text-muted);
+  }
+  .trip-card-body{flex:1; min-width:0;}
+  .trip-card-countries{font-size:14.5px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .trip-card-dates{font-size:12px; color:var(--text-muted); margin-top:3px;}
+  .trip-card-rating{font-size:12.5px; color:var(--planned); margin-top:4px; letter-spacing:1px;}
+
+  .form-group{margin-bottom:16px;}
+  .form-group label{display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:6px;}
+  .form-row{display:flex; gap:10px;}
+  .form-row .form-group{flex:1;}
+  .form-group input[type="text"],
+  .form-group input[type="date"],
+  .form-group textarea{
+    width:100%; background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; color:var(--text); font-size:14.5px; outline:none; font-family:inherit;
+  }
+  .form-group textarea{resize:vertical;}
+
+  .trip-country-chips{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 0;}
+  .trip-country-chip{
+    display:flex; align-items:center; gap:6px; background:var(--planned-dim); color:var(--planned);
+    border:1px solid var(--planned); border-radius:16px; padding:5px 8px 5px 12px; font-size:12.5px;
+  }
+  .trip-country-chip .x{font-size:13px; opacity:0.8;}
+  .trip-country-options{
+    max-height:150px; overflow-y:auto; margin-top:8px; border:1px solid var(--border);
+    border-radius:10px; background:var(--surface);
+  }
+  .trip-country-option{
+    padding:9px 12px; font-size:13.5px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .trip-country-option:last-child{border-bottom:none;}
+  .trip-country-option.selected{color:var(--planned);}
+
+  .star-rating{display:flex; gap:6px;}
+  .star-btn{font-size:26px; color:var(--accent-line); background:none; border:none; line-height:1;}
+  .star-btn.on{color:var(--planned);}
+
+  .photo-add-btn{
+    background:var(--surface); border:1.5px dashed var(--border); border-radius:10px;
+    padding:10px; width:100%; color:var(--text-muted); font-size:13.5px;
+  }
+  .trip-photo-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:10px;}
+  .trip-photo-thumb{
+    position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; background:var(--surface-2);
+  }
+  .trip-photo-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .trip-photo-thumb .remove{
+    position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%;
+    background:rgba(10,12,16,0.75); color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center;
+    border:none;
+  }
+  .quota-note{font-size:11.5px; color:var(--text-muted); margin-top:6px;}
+  .quota-note.warn{color:var(--danger);}
+
+  .sheet-actions{display:flex; gap:10px; margin-top:6px;}
+  .btn-primary, .btn-secondary, .btn-danger{
+    flex:1; padding:13px 8px; border-radius:12px; border:1.5px solid transparent; font-size:14px; font-weight:600;
+  }
+  .btn-primary{background:var(--planned); color:#241705;}
+  .btn-primary:disabled{opacity:0.5;}
+  .btn-secondary{background:var(--surface); border-color:var(--border); color:var(--text);}
+  .btn-danger{background:transparent; border-color:var(--danger); color:var(--danger);}
+
+  .trip-sheet{max-height:88dvh; overflow-y:auto;}
+  .trip-detail-countries{font-family:"Fraunces", serif; font-size:20px; margin-bottom:4px;}
+  .trip-detail-dates{color:var(--text-muted); font-size:13px; margin-bottom:6px;}
+  .trip-detail-rating{color:var(--planned); font-size:16px; letter-spacing:2px; margin-bottom:10px;}
+  .trip-detail-note{font-size:13.5px; color:var(--text); line-height:1.5; margin-bottom:14px; white-space:pre-wrap;}
+  .trip-detail-photos{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;}
+  .trip-detail-photos img{width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; display:block;}
+
+  .lightbox{
+    position:fixed; inset:0; background:rgba(6,8,11,0.94); z-index:60;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:8px;}
+  .lightbox-close{
+    position:absolute; top:calc(16px + var(--safe-top)); right:16px; width:38px; height:38px;
+    border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:16px;
+  }
+  .empty-state .hint-btn{
+    display:inline-block; margin-top:14px; background:var(--planned); color:#241705; border:none;
+    border-radius:10px; padding:9px 16px; font-size:13px; font-weight:600;
+  }
 </style>
 </head>
 <body>
@@ -207,13 +325,17 @@
       <div class="num" id="stat-visited">0</div>
       <div class="lbl">Odwiedzone</div>
     </div>
+    <div class="stat-pill lived">
+      <div class="num" id="stat-lived">0</div>
+      <div class="lbl">Mieszkane</div>
+    </div>
     <div class="stat-pill planned">
       <div class="num" id="stat-planned">0</div>
       <div class="lbl">Planowane</div>
     </div>
     <div class="stat-pill">
       <div class="num" id="stat-percent">0%</div>
-      <div class="lbl">Świata</div>
+      <div class="lbl">% Świata</div>
     </div>
   </div>
 </header>
@@ -239,10 +361,19 @@
     <div class="filter-chips">
       <div class="chip active" data-filter="all">Wszystkie</div>
       <div class="chip" data-filter="visited">Odwiedzone</div>
+      <div class="chip" data-filter="lived">Mieszkane</div>
       <div class="chip" data-filter="planned">Planowane</div>
       <div class="chip" data-filter="none">Nieoznaczone</div>
     </div>
     <div class="country-list" id="country-list"></div>
+  </div>
+
+  <div id="trips-view" class="view">
+    <div class="trips-header">
+      <h2>Podróże</h2>
+      <button class="add-trip-btn" id="btn-add-trip">+ Dodaj podróż</button>
+    </div>
+    <div class="trips-list" id="trips-list"></div>
   </div>
 </main>
 
@@ -253,6 +384,9 @@
   <button class="tab-btn" data-view="list-view">
     <span class="ico">☰</span>Lista
   </button>
+  <button class="tab-btn" data-view="trips-view">
+    <span class="ico">✈</span>Podróże
+  </button>
 </nav>
 
 <div class="sheet-backdrop" id="sheet-backdrop"></div>
@@ -262,6 +396,7 @@
   <div class="sheet-region" id="sheet-region"></div>
   <div class="status-buttons">
     <button class="status-btn" id="btn-visited"><span class="ico">✓</span>Odwiedzone</button>
+    <button class="status-btn" id="btn-lived"><span class="ico">⌂</span>Mieszkane</button>
     <button class="status-btn" id="btn-planned"><span class="ico">☆</span>Planowane</button>
   </div>
   <div class="clear-row">
@@ -269,9 +404,84 @@
   </div>
 </div>
 
+<!-- TRIP ADD/EDIT SHEET -->
+<div class="sheet-backdrop" id="trip-sheet-backdrop"></div>
+<div class="sheet trip-sheet" id="trip-sheet">
+  <div class="sheet-handle"></div>
+  <h3 id="trip-sheet-title">Nowa podróż</h3>
+
+  <div class="form-group">
+    <label>Kraje</label>
+    <input type="text" id="trip-country-search" placeholder="Szukaj kraju…" autocomplete="off">
+    <div class="trip-country-chips" id="trip-country-selected"></div>
+    <div class="trip-country-options" id="trip-country-options"></div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Data początku</label>
+      <input type="date" id="trip-start-date">
+    </div>
+    <div class="form-group">
+      <label>Data końca</label>
+      <input type="date" id="trip-end-date">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Ocena</label>
+    <div class="star-rating" id="trip-rating">
+      <button type="button" class="star-btn" data-star="1">★</button>
+      <button type="button" class="star-btn" data-star="2">★</button>
+      <button type="button" class="star-btn" data-star="3">★</button>
+      <button type="button" class="star-btn" data-star="4">★</button>
+      <button type="button" class="star-btn" data-star="5">★</button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Zdjęcia (<span id="trip-photo-count">0</span>/20 w tej podróży · JPG/PNG/WEBP/GIF · max 5&nbsp;MB/zdjęcie)</label>
+    <input type="file" id="trip-photo-input" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none;">
+    <button type="button" class="photo-add-btn" id="btn-add-photos">+ Dodaj zdjęcia</button>
+    <div class="trip-photo-grid" id="trip-photo-grid"></div>
+    <div class="quota-note" id="trip-quota-note"></div>
+  </div>
+
+  <div class="form-group">
+    <label>Notatka (opcjonalnie)</label>
+    <textarea id="trip-note" rows="2" placeholder="Wspomnienia z podróży…" maxlength="500"></textarea>
+  </div>
+
+  <div class="sheet-actions">
+    <button type="button" class="btn-secondary" id="btn-cancel-trip">Anuluj</button>
+    <button type="button" class="btn-primary" id="btn-save-trip">Zapisz podróż</button>
+  </div>
+</div>
+
+<!-- TRIP DETAIL SHEET -->
+<div class="sheet-backdrop" id="trip-detail-backdrop"></div>
+<div class="sheet trip-sheet" id="trip-detail-sheet">
+  <div class="sheet-handle"></div>
+  <div class="trip-detail-countries" id="detail-countries">—</div>
+  <div class="trip-detail-dates" id="detail-dates"></div>
+  <div class="trip-detail-rating" id="detail-rating"></div>
+  <div class="trip-detail-note" id="detail-note"></div>
+  <div class="trip-detail-photos" id="detail-photos"></div>
+  <div class="sheet-actions">
+    <button type="button" class="btn-danger" id="btn-delete-trip">Usuń podróż</button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script src="countries-pl.js"></script>
+<script src="country-areas.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
